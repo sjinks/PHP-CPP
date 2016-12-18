@@ -85,7 +85,10 @@ public:
     /**
      *  Destructor
      */
-    virtual ~ObjectImpl() = default;
+    virtual ~ObjectImpl()
+    {
+        efree(_mixed);
+    }
 
     /**
      *  Destruct the object
