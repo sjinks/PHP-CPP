@@ -6,5 +6,6 @@
 Php::Value my_add(Php::Parameters& params);
 void swap(Php::Parameters& params);
 Php::Value call_php_function(Php::Parameters& params);
+void test269(Php::Parameters& params);
 
 #endif // FUNCTIONS_H

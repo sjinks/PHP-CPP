@@ -1,3 +1,4 @@
+#include <iostream>
 #include "functions.h"
 
 Php::Value my_add(Php::Parameters& params)
@@ -25,4 +26,10 @@ Php::Value call_php_function(Php::Parameters& params)
 	}
 
 	return params[0](1, 2, 3);
+}
+
+void test269(Php::Parameters& params)
+{
+	Php::Value obj = params[0];
+	std::cout << obj["test"] << std::endl;
 }

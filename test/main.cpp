@@ -25,6 +25,9 @@ extern "C"
 		extension.add<call_php_function>("call_php_function2", {
 			Php::ByVal("addFunc")
 		});
+		extension.add<test269>("test269", {
+			Php::ByRef("obj", Php::Type::Null, false)
+		});
 
 		Php::Class<DoNothingClass> doNothingClass("DoNothingClass");
 		doNothingClass.method<&DoNothingClass::DoNothing>("DoNothing");
