@@ -101,10 +101,10 @@ endif
 #   you want to leave that flag out on production servers).
 #
 
-COMPILER_FLAGS			=	-Wall -c -std=c++11 -fvisibility=hidden -DBUILDING_PHPCPP -Wno-write-strings -MD
+COMPILER_FLAGS		=	-Wall -c -std=c++11 -fvisibility=hidden -DBUILDING_PHPCPP
 SHARED_COMPILER_FLAGS	=	-fpic
 STATIC_COMPILER_FLAGS	=
-PHP_COMPILER_FLAGS		=	${COMPILER_FLAGS} `${PHP_CONFIG} --includes`
+PHP_COMPILER_FLAGS	=	${COMPILER_FLAGS} $(shell $(PHP_CONFIG) --includes)
 
 #
 #   Linker flags
@@ -117,7 +117,7 @@ PHP_COMPILER_FLAGS		=	${COMPILER_FLAGS} `${PHP_CONFIG} --includes`
 #
 
 LINKER_FLAGS			=	-shared
-PHP_LINKER_FLAGS		=	${LINKER_FLAGS} `${PHP_CONFIG} --ldflags`
+PHP_LINKER_FLAGS		=	${LINKER_FLAGS} $(shell $(PHP_CONFIG) --ldflags)
 
 
 #
@@ -142,7 +142,8 @@ MKDIR					=	mkdir -p
 #
 
 COMMON_SOURCES			=	$(wildcard common/*.cpp)
-PHP_SOURCES				=	$(wildcard zend/*.cpp)
+PHP_SOURCES			=	$(wildcard zend/*.cpp)
+CXX_SOURCES			=	$(COMMON_SOURCES) $(PHP_SOURCES)
 
 #
 #   The object files
@@ -153,9 +154,11 @@ PHP_SOURCES				=	$(wildcard zend/*.cpp)
 #
 
 COMMON_SHARED_OBJECTS	=	$(COMMON_SOURCES:%.cpp=shared/%.o)
-PHP_SHARED_OBJECTS		=	$(PHP_SOURCES:%.cpp=shared/%.o)
+PHP_SHARED_OBJECTS	=	$(PHP_SOURCES:%.cpp=shared/%.o)
 COMMON_STATIC_OBJECTS	=	$(COMMON_SOURCES:%.cpp=static/%.o)
-PHP_STATIC_OBJECTS		=	$(PHP_SOURCES:%.cpp=static/%.o)
+PHP_STATIC_OBJECTS	=	$(PHP_SOURCES:%.cpp=static/%.o)
+
+SOURCE_DEPS = $(patsubst %.cpp,%.d,$(CXX_SOURCES))
 
 
 #
@@ -163,11 +166,11 @@ PHP_STATIC_OBJECTS		=	$(PHP_SOURCES:%.cpp=static/%.o)
 #   dependencies that are used by the compiler.
 #
 
-all: COMPILER_FLAGS 	+=	-g
-all: LINKER_FLAGS		+=  -g
+all: COMPILER_FLAGS 	+= -g
+all: LINKER_FLAGS	+= -g
 all: phpcpp
 
-release: COMPILER_FLAGS +=	-O2
+release: COMPILER_FLAGS +=  -O2
 release: LINKER_FLAGS	+=  -O2
 release: phpcpp
 
@@ -176,7 +179,7 @@ phpcpp: ${PHP_SHARED_LIBRARY} ${PHP_STATIC_LIBRARY}
 	@echo "Build complete."
 
 ${PHP_SHARED_LIBRARY}: shared_directories ${COMMON_SHARED_OBJECTS} ${PHP_SHARED_OBJECTS}
-	${LINKER} ${PHP_LINKER_FLAGS} -Wl,-soname,libphpcpp.so.$(SONAME) -o $@ ${COMMON_SHARED_OBJECTS} ${PHP_SHARED_OBJECTS}
+	${LINKER} ${PHP_LINKER_FLAGS} $(LDFLAGS) -Wl,-soname,libphpcpp.so.$(SONAME) -o $@ ${COMMON_SHARED_OBJECTS} ${PHP_SHARED_OBJECTS}
 
 ${PHP_STATIC_LIBRARY}: static_directories ${COMMON_STATIC_OBJECTS} ${PHP_STATIC_OBJECTS}
 	${ARCHIVER} $@ ${COMMON_STATIC_OBJECTS} ${PHP_STATIC_OBJECTS}
@@ -194,17 +197,29 @@ clean:
 	${RM} static ${PHP_STATIC_LIBRARY}
 	find -name *.o | xargs ${RM}
 
+clean: clean-deps
+
+clean-deps:
+	-rm -f $(SOURCE_DEPS)
+
+ifeq (,$(findstring clean,$(MAKECMDGOALS)))
+-include $(SOURCE_DEPS)
+endif
+
+%.d : %.cpp
+	$(CXX) -MM -MP -MF"$@" -MT"$(@:%.d=static/%.o)" -MT"$(@:%.d=shared/%.o)" -MT"$@" $(PHP_COMPILER_FLAGS) "$<"
+
 ${COMMON_SHARED_OBJECTS}:
-	${COMPILER} ${COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} -o $@ ${@:shared/%.o=%.cpp}
+	${COMPILER} ${COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:shared/%.o=%.cpp}
 
 ${COMMON_STATIC_OBJECTS}:
-	${COMPILER} ${COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} -o $@ ${@:static/%.o=%.cpp}
+	${COMPILER} ${COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:static/%.o=%.cpp}
 
 ${PHP_SHARED_OBJECTS}:
-	${COMPILER} ${PHP_COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} -o $@ ${@:shared/%.o=%.cpp}
+	${COMPILER} ${PHP_COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:shared/%.o=%.cpp}
 
 ${PHP_STATIC_OBJECTS}:
-	${COMPILER} ${PHP_COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} -o $@ ${@:static/%.o=%.cpp}
+	${COMPILER} ${PHP_COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:static/%.o=%.cpp}
 
 
 # The if statements below must be seen as single line by make
@@ -230,3 +245,6 @@ uninstall:
 	${RM} ${INSTALL_HEADERS}/phpcpp*
 	${RM} ${INSTALL_LIB}/libphpcpp.*
 
+coverage:
+	$(MAKE) CXXFLAGS="-O0 -g -coverage" LDFLAGS="-coverage"
+	$(MAKE) -C test coverage
