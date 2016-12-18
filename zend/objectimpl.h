@@ -87,7 +87,7 @@ public:
      */
     virtual ~ObjectImpl()
     {
-        efree(_mixed);
+        zend_object_std_dtor(&_mixed->php);
     }
 
     /**
