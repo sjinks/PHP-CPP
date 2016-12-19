@@ -10,5 +10,6 @@ void test269(Php::Parameters& params);
 void my_throw_exception_function();
 void my_catch_exception_function(Php::Parameters& params);
 void test254();
+Php::Value test273(Php::Parameters& params);
 
 #endif // FUNCTIONS_H
