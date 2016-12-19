@@ -1078,7 +1078,7 @@ public:
     bool derivedFrom(const std::string &classname, bool allowString = false) const { return derivedFrom(classname.c_str(), classname.size(), allowString); }
 
 
-private:
+public:
     /**
      *  Iterate over key value pairs
      *  @param  callback
