@@ -24,7 +24,7 @@ do {
             break;
         } // if ($memoryUsage >= $maxMemory)
     }
-} while($iterations < 655360);
+} while($iterations < 65536*2);
 ?>
 --EXPECTF--
 iterations: %d; memory_usage: %s B
