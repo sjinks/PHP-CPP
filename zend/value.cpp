@@ -206,6 +206,7 @@ Value::Value(const IniValue &value) : Value((const char *)value) {}
  */
 Value::Value(const Value &that)
 {
+    ZVAL_UNDEF(_val);
     zend_assign_to_variable(_val, that._val, IS_VAR);
 }
 
@@ -297,9 +298,6 @@ Value &Value::operator=(Value &&value) _NOEXCEPT
 {
     // skip self assignment
     if (this == &value) return *this;
-
-//    zend_assign_to_variable(_val, value._val, IS_VAR);
-//    return *this;
 
     // if neither value is a reference we can simply swap the values
     // the other value will then destruct and reduce the refcount
