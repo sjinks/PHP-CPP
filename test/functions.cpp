@@ -48,7 +48,7 @@ void my_catch_exception_function(Php::Parameters& params)
 	}
 
 	try {
-		callback("some"," example", "parameters");
+		callback("some", "example", "parameters");
 	}
 	catch (const Php::Exception& exception) {
 		std::cout << "Exception caught in CPP code: " << exception.message() << std::endl;
