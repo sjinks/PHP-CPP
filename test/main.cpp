@@ -3,6 +3,7 @@
 #include "donothing.h"
 #include "donothingnative.h"
 #include "conststaticprop.h"
+#include "issue260.h"
 
 extern "C"
 {
@@ -47,6 +48,8 @@ extern "C"
         cspClass.property("str", "Hi!", Php::Static);
         cspClass.method<&ConstStaticProp::__construct>("__construct", Php::Private);
         extension.add(cspClass);
+
+        init_Issue260(extension);
 
         return extension.module();
     }

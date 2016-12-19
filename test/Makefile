@@ -7,7 +7,7 @@ EGREP                           = /bin/grep -E
 PHP_CPPFLAGS                    = $(shell php-config --includes) -I$(SRCDIR)../include -I$(SRCDIR)../ -std=c++11
 PHP_LDFLAGS                     = -shared -Wl,-rpath,'$$ORIGIN/../' -L$(SRCDIR)../ -lphpcpp $(shell php-config --ldflags) 
 
-CXX_SRC  = main.cpp functions.cpp donothingnative.cpp
+CXX_SRC  = main.cpp functions.cpp donothingnative.cpp issue260.cpp
 OBJS     = $(patsubst %.cpp,%.o,$(CXX_SRC))
 SRC_DEPS = $(patsubst %.cpp,%.d,$(CXX_SRC))
 
@@ -19,7 +19,7 @@ phpcpptest.so: $(OBJS)
 	$(CXX) $^ $(PHP_LDFLAGS) $(LDFLAGS) -o "$@"
 
 %.o: %.cpp
-	$(CXX) $(PHP_CPPFLAGS) -fpic $(CXXFLAGS) -c "$<" -o "$@"
+	$(CXX) $(PHP_CPPFLAGS) -fpic -g3 $(CXXFLAGS) -c "$<" -o "$@"
 
 clean: clean-deps clean-coverage
 	-rm -f $(TARGET) $(OBJS)
