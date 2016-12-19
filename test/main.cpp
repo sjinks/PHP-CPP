@@ -4,6 +4,7 @@
 #include "donothingnative.h"
 #include "conststaticprop.h"
 #include "issue260.h"
+#include "issue289.h"
 
 extern "C"
 {
@@ -50,6 +51,7 @@ extern "C"
         extension.add(cspClass);
 
         init_Issue260(extension);
+        init_Issue289(extension);
 
         return extension.module();
     }
