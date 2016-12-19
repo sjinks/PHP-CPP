@@ -206,8 +206,12 @@ Value::Value(const IniValue &value) : Value((const char *)value) {}
  */
 Value::Value(const Value &that)
 {
-    ZVAL_UNDEF(_val);
-    zend_assign_to_variable(_val, that._val, IS_VAR);
+    if (Z_ISREF_P(that._val)) {
+        zend_assign_to_variable(_val, that._val, IS_VAR);
+    }
+    else {
+        ZVAL_COPY(_val, that._val);
+    }
 }
 
 /**
