@@ -30,6 +30,7 @@ extern "C"
 		});
 		extension.add<my_throw_exception_function>("my_throw_exception_function");
 		extension.add<my_catch_exception_function>("my_catch_exception_function");
+		extension.add<test254>("test254");
 
 		Php::Class<DoNothingClass> doNothingClass("DoNothingClass");
 		doNothingClass.method<&DoNothingClass::DoNothing>("DoNothing");
