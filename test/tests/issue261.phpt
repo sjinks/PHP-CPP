@@ -1,5 +1,5 @@
 --TEST--
-Refernces not working (#261)
+References not working (#261)
 --SKIPIF--
 <?php include 'skipif.inc'; ?>
 --FILE--

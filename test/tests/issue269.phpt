@@ -1,4 +1,5 @@
 --TEST--
+--XFAIL--
 Segmentation fault when accessing object passed by reference (#269)
 --SKIPIF--
 <?php include 'skipif.inc'; ?>

@@ -33,3 +33,24 @@ void test269(Php::Parameters& params)
 	Php::Value obj = params[0];
 	std::cout << obj["test"] << std::endl;
 }
+
+void my_throw_exception_function()
+{
+	throw Php::Exception("I threw an exception in my_throw_exception_function()");
+}
+
+void my_catch_exception_function(Php::Parameters& params)
+{
+	Php::Value callback = params[0];
+
+	if (!callback.isCallable()) {
+		throw Php::Exception("Parameter 0 is not a function");
+	}
+
+	try {
+		callback("some"," example", "parameters");
+	}
+	catch (const Php::Exception& exception) {
+		std::cout << "Exception caught in CPP code: " << exception.message() << std::endl;
+	}
+}

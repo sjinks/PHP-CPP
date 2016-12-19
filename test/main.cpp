@@ -28,6 +28,8 @@ extern "C"
 		extension.add<test269>("test269", {
 			Php::ByRef("obj", Php::Type::Null, false)
 		});
+		extension.add<my_throw_exception_function>("my_throw_exception_function");
+		extension.add<my_catch_exception_function>("my_catch_exception_function");
 
 		Php::Class<DoNothingClass> doNothingClass("DoNothingClass");
 		doNothingClass.method<&DoNothingClass::DoNothing>("DoNothing");
