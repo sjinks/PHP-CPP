@@ -17,8 +17,8 @@
 #   installed in the default directory, you can change that here.
 #
 
-PHP_CONFIG			=	php-config
-UNAME 				:= 	$(shell uname)
+PHP_CONFIG            = php-config
+UNAME                := $(shell uname)
 
 #
 #   Installation directory
@@ -33,13 +33,13 @@ UNAME 				:= 	$(shell uname)
 # Since OSX 10.10 Yosemite, /usr/include gives problem
 # So, let's switch to /usr/local as default instead.
 ifeq ($(UNAME), Darwin)
-  INSTALL_PREFIX		=	/usr/local
+  INSTALL_PREFIX        = /usr/local
 else
-  INSTALL_PREFIX		=	/usr
+  INSTALL_PREFIX        = /usr
 endif
 
-INSTALL_HEADERS			=	${INSTALL_PREFIX}/include
-INSTALL_LIB			=	${INSTALL_PREFIX}/lib
+INSTALL_HEADERS         = $(INSTALL_PREFIX)/include
+INSTALL_LIB             = $(INSTALL_PREFIX)/lib
 
 
 #
@@ -49,8 +49,8 @@ INSTALL_LIB			=	${INSTALL_PREFIX}/lib
 #   Otherwise only release verions changes. (version is MAJOR.MINOR.RELEASE)
 #
 
-SONAME					=	2.0
-VERSION					=	2.0.0
+SONAME                  = 2.0
+VERSION                 = 2.0.0
 
 
 #
@@ -61,8 +61,8 @@ VERSION					=	2.0.0
 #   you can change that here.
 #
 
-PHP_SHARED_LIBRARY		=	libphpcpp.so.$(VERSION)
-PHP_STATIC_LIBRARY		=	libphpcpp.a.$(VERSION)
+PHP_SHARED_LIBRARY      = libphpcpp.so.$(VERSION)
+PHP_STATIC_LIBRARY      = libphpcpp.a
 
 
 #
@@ -74,20 +74,6 @@ PHP_STATIC_LIBRARY		=	libphpcpp.a.$(VERSION)
 #   the linker (the program that links all object files into a single .so
 #   library file. By default, g++ (the GNU C++ compiler) is used for both.
 #
-
-ifdef CXX
- COMPILER				=	${CXX}
- LINKER					=	${CXX}
-else
- COMPILER				=	g++
- LINKER					=	g++
-endif
-
-ifdef AR
-  ARCHIVER				=	${AR} rcs
-else
-  ARCHIVER				=	ar rcs
-endif
 
 #
 #   Compiler flags
@@ -101,10 +87,8 @@ endif
 #   you want to leave that flag out on production servers).
 #
 
-COMPILER_FLAGS		=	-Wall -c -std=c++11 -fvisibility=hidden -DBUILDING_PHPCPP
-SHARED_COMPILER_FLAGS	=	-fpic
-STATIC_COMPILER_FLAGS	=
-PHP_COMPILER_FLAGS	=	${COMPILER_FLAGS} $(shell $(PHP_CONFIG) --includes)
+CXXFLAGS_EXTRA          = -Wall -fvisibility=hidden -fvisibility-inlines-hidden
+CPPFLAGS_EXTRA          = -std=c++11 -DBUILDING_PHPCPP $(shell $(PHP_CONFIG) --includes)
 
 #
 #   Linker flags
@@ -116,9 +100,7 @@ PHP_COMPILER_FLAGS	=	${COMPILER_FLAGS} $(shell $(PHP_CONFIG) --includes)
 #   to the linker flags
 #
 
-LINKER_FLAGS			=	-shared
-PHP_LINKER_FLAGS		=	${LINKER_FLAGS} $(shell $(PHP_CONFIG) --ldflags)
-
+LDFLAGS_EXTRA           = -shared $(shell $(PHP_CONFIG) --ldflags) -Wl,-soname,libphpcpp.so.$(SONAME)
 
 #
 #   Command to remove files, copy files, link files and create directories.
@@ -127,10 +109,10 @@ PHP_LINKER_FLAGS		=	${LINKER_FLAGS} $(shell $(PHP_CONFIG) --ldflags)
 #   So you can probably leave this as it is
 #
 
-RM						=	rm -fr
-CP						=	cp -f
-LN						=	ln -f -s
-MKDIR					=	mkdir -p
+RM                      = rm -fr
+CP                      = cp -f
+LN                      = ln -f -s
+MKDIR                   = mkdir -p
 
 
 #
@@ -141,9 +123,9 @@ MKDIR					=	mkdir -p
 #   probably necessary here
 #
 
-COMMON_SOURCES			=	$(wildcard common/*.cpp)
-PHP_SOURCES			=	$(wildcard zend/*.cpp)
-CXX_SOURCES			=	$(COMMON_SOURCES) $(PHP_SOURCES)
+COMMON_SOURCES          = $(wildcard common/*.cpp)
+PHP_SOURCES             = $(wildcard zend/*.cpp)
+CXX_SOURCES             = $(COMMON_SOURCES) $(PHP_SOURCES)
 
 #
 #   The object files
@@ -153,12 +135,11 @@ CXX_SOURCES			=	$(COMMON_SOURCES) $(PHP_SOURCES)
 #   library. We also use a Makefile function here that takes all source files.
 #
 
-COMMON_SHARED_OBJECTS	=	$(COMMON_SOURCES:%.cpp=shared/%.o)
-PHP_SHARED_OBJECTS	=	$(PHP_SOURCES:%.cpp=shared/%.o)
-COMMON_STATIC_OBJECTS	=	$(COMMON_SOURCES:%.cpp=static/%.o)
-PHP_STATIC_OBJECTS	=	$(PHP_SOURCES:%.cpp=static/%.o)
-
-SOURCE_DEPS = $(patsubst %.cpp,%.d,$(CXX_SOURCES))
+COMMON_SHARED_OBJECTS   = $(COMMON_SOURCES:%.cpp=shared/%.o)
+PHP_SHARED_OBJECTS      = $(PHP_SOURCES:%.cpp=shared/%.o)
+COMMON_STATIC_OBJECTS   = $(COMMON_SOURCES:%.cpp=static/%.o)
+PHP_STATIC_OBJECTS      = $(PHP_SOURCES:%.cpp=static/%.o)
+SOURCE_DEPS             = $(patsubst %.cpp,%.d,$(CXX_SOURCES))
 
 
 #
@@ -166,31 +147,28 @@ SOURCE_DEPS = $(patsubst %.cpp,%.d,$(CXX_SOURCES))
 #   dependencies that are used by the compiler.
 #
 
-all: COMPILER_FLAGS 	+= -g
-all: LINKER_FLAGS	+= -g
+all: CXXFLAGS_EXTRA += -g
 all: phpcpp
 
-release: COMPILER_FLAGS +=  -O2
-release: LINKER_FLAGS	+=  -O2
+release: CXXFLAGS_EXTRA += -O2
 release: phpcpp
 
-phpcpp: ${PHP_SHARED_LIBRARY} ${PHP_STATIC_LIBRARY}
+phpcpp: $(PHP_SHARED_LIBRARY) $(PHP_STATIC_LIBRARY)
 	@echo
 	@echo "Build complete."
 
-${PHP_SHARED_LIBRARY}: shared_directories ${COMMON_SHARED_OBJECTS} ${PHP_SHARED_OBJECTS}
-	${LINKER} ${PHP_LINKER_FLAGS} $(LDFLAGS) -Wl,-soname,libphpcpp.so.$(SONAME) -o $@ ${COMMON_SHARED_OBJECTS} ${PHP_SHARED_OBJECTS}
+$(PHP_SHARED_LIBRARY): $(COMMON_SHARED_OBJECTS) $(PHP_SHARED_OBJECTS)
+	$(CXX) $(LDFLAGS) $(LDFLAGS_EXTRA) $^ $(LDLIBS) -o "$@"
 
-${PHP_STATIC_LIBRARY}: static_directories ${COMMON_STATIC_OBJECTS} ${PHP_STATIC_OBJECTS}
-	${ARCHIVER} $@ ${COMMON_STATIC_OBJECTS} ${PHP_STATIC_OBJECTS}
+$(PHP_STATIC_LIBRARY): $(COMMON_STATIC_OBJECTS) $(PHP_STATIC_OBJECTS)
+	$(AR) rcs $@ $^
 
-shared_directories:
-	${MKDIR} shared/common
-	${MKDIR} shared/zend
+shared_directories: shared/common shared/zend
+static_directories: static/common static/zend
+shared/common shared/zend static/common static/zend:
+	$(MKDIR) $@
 
-static_directories:
-	${MKDIR} static/common
-	${MKDIR} static/zend
+.PHONY: shared_directories static_directories
 
 clean:
 	${RM} shared ${PHP_SHARED_LIBRARY}
@@ -206,44 +184,34 @@ ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 -include $(SOURCE_DEPS)
 endif
 
-%.d : %.cpp
-	$(CXX) -MM -MP -MF"$@" -MT"$(@:%.d=static/%.o)" -MT"$(@:%.d=shared/%.o)" -MT"$@" $(PHP_COMPILER_FLAGS) "$<"
+static/%.o: %.cpp | static/common static/zend
+	$(CXX) -c "$<" $(CPPFLAGS) $(CPPFLAGS_EXTRA) $(CXXFLAGS) $(CXXFLAGS_EXTRA) -MMD -MP -MF"$(<:%.cpp=%.d)" -MT"$(<:%.cpp=static/%.o)" -MT"$(<:%.cpp=shared/%.o)" -MT"$(<:%.cpp=%.d)" -o "$@"
 
-${COMMON_SHARED_OBJECTS}:
-	${COMPILER} ${COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:shared/%.o=%.cpp}
-
-${COMMON_STATIC_OBJECTS}:
-	${COMPILER} ${COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:static/%.o=%.cpp}
-
-${PHP_SHARED_OBJECTS}:
-	${COMPILER} ${PHP_COMPILER_FLAGS} ${SHARED_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:shared/%.o=%.cpp}
-
-${PHP_STATIC_OBJECTS}:
-	${COMPILER} ${PHP_COMPILER_FLAGS} ${STATIC_COMPILER_FLAGS} $(CXXFLAGS) -o $@ ${@:static/%.o=%.cpp}
-
+shared/%.o: %.cpp | shared/common shared/zend
+	$(CXX) -c "$<" $(CPPFLAGS) $(CPPFLAGS_EXTRA) $(CXXFLAGS) $(CXXFLAGS_EXTRA) -fpic -MMD -MP -MF"$(<:%.cpp=%.d)" -MT"$(<:%.cpp=static/%.o)" -MT"$(<:%.cpp=shared/%.o)" -MT"$(<:%.cpp=%.d)" -o "$@"
 
 # The if statements below must be seen as single line by make
 
 install:
-	${MKDIR} ${INSTALL_HEADERS}/phpcpp
-	${MKDIR} ${INSTALL_LIB}
-	${CP} phpcpp.h ${INSTALL_HEADERS}
-	${CP} include/*.h ${INSTALL_HEADERS}/phpcpp
-	if [ -e ${PHP_SHARED_LIBRARY} ]; then \
-		${CP} ${PHP_SHARED_LIBRARY} ${INSTALL_LIB}/; \
-		${LN} ${INSTALL_LIB}/${PHP_SHARED_LIBRARY} ${INSTALL_LIB}/libphpcpp.so.$(SONAME); \
-		${LN} ${INSTALL_LIB}/${PHP_SHARED_LIBRARY} ${INSTALL_LIB}/libphpcpp.so; \
+	$(MKDIR) "$(INSTALL_HEADERS)/phpcpp"
+	$(MKDIR) "$(INSTALL_LIB)"
+	$(CP) phpcpp.h "$(INSTALL_HEADERS)"
+	$(CP) include/*.h "$(INSTALL_HEADERS)/phpcpp"
+	if [ -e $(PHP_SHARED_LIBRARY) ]; then \
+		$(CP) $(PHP_SHARED_LIBRARY) "$(INSTALL_LIB)/"; \
+		$(LN) "$(INSTALL_LIB)/$(PHP_SHARED_LIBRARY)" "$(INSTALL_LIB)/libphpcpp.so.$(SONAME)"; \
+		$(LN) "$(INSTALL_LIB)/$(PHP_SHARED_LIBRARY)" "$(INSTALL_LIB)/libphpcpp.so"; \
 	fi
-	if [ -e ${PHP_STATIC_LIBRARY} ]; then ${CP} ${PHP_STATIC_LIBRARY} ${INSTALL_LIB}/; \
-		${LN} ${INSTALL_LIB}/${PHP_STATIC_LIBRARY} ${INSTALL_LIB}/libphpcpp.a; \
+	if [ -e $(PHP_STATIC_LIBRARY) ]; then \
+		$(CP) $(PHP_STATIC_LIBRARY) "${INSTALL_LIB}/"; \
 	fi
 	if `which ldconfig`; then \
 		sudo ldconfig; \
 	fi
 
 uninstall:
-	${RM} ${INSTALL_HEADERS}/phpcpp*
-	${RM} ${INSTALL_LIB}/libphpcpp.*
+	$(RM) $(INSTALL_HEADERS)/phpcpp*
+	$(RM) $(INSTALL_LIB)/libphpcpp.*
 
 coverage:
 	$(MAKE) CXXFLAGS="-O0 -g -coverage" LDFLAGS="-coverage"
