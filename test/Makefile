@@ -7,9 +7,23 @@ EGREP                           = /bin/grep -E
 PHP_CPPFLAGS                    = $(shell php-config --includes) -I$(SRCDIR)../include -I$(SRCDIR)../ -std=c++11
 PHP_LDFLAGS                     = -shared -Wl,-rpath,'$$ORIGIN/../' -L$(SRCDIR)../ -lphpcpp $(shell php-config --ldflags) 
 
-CXX_SRC  = main.cpp functions.cpp donothingnative.cpp issue260.cpp issue289.cpp
+CXX_SRC  = \
+	main.cpp \
+	test0001.cpp \
+	test0002.cpp \
+	test0003.cpp \
+	test0004.cpp \
+	issue249.cpp \
+	issue254.cpp \
+	issue260.cpp \
+	issue261.cpp \
+	issue269.cpp \
+	issue273.cpp \
+	issue289.cpp
+
 OBJS     = $(patsubst %.cpp,%.o,$(CXX_SRC))
 SRC_DEPS = $(patsubst %.cpp,%.d,$(CXX_SRC))
+COVERAGE = $(patsubst %.cpp,%.gcda,$(CXX_SRC)) $(patsubst %.cpp,%.gcno,$(CXX_SRC))
 
 TARGET   = phpcpptest.so
 
@@ -58,7 +72,7 @@ test: all
 	fi
 
 clean-coverage:
-	-rm -rf .coverage coverage
+	-rm -rf .coverage coverage $(COVERAGE)
 
 coverage: clean-coverage
 	$(MAKE) CXXFLAGS="-O0 -coverage" LDFLAGS="-coverage" test
