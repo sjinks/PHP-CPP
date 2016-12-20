@@ -11,6 +11,7 @@
 #include "issue269.h"
 #include "issue273.h"
 #include "issue289.h"
+#include "issue293.h"
 
 extern "C"
 {
@@ -31,6 +32,7 @@ extern "C"
         init_Issue269(extension);
         init_Issue273(extension);
         init_Issue289(extension);
+        init_Issue293(extension);
 
         return extension.module();
     }

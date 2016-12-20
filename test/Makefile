@@ -20,6 +20,7 @@ CXX_SRC  = \
 	issue261.cpp \
 	issue269.cpp \
 	issue273.cpp \
+	issue293.cpp \
 	issue289.cpp
 
 OBJS     = $(patsubst %.cpp,%.o,$(CXX_SRC))
