@@ -13,6 +13,7 @@ CXX_SRC  = \
 	test0002.cpp \
 	test0003.cpp \
 	test0004.cpp \
+	issue234.cpp \
 	issue249.cpp \
 	issue254.cpp \
 	issue260.cpp \

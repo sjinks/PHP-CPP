@@ -3,6 +3,7 @@
 #include "test0002.h"
 #include "test0003.h"
 #include "test0004.h"
+#include "issue234.h"
 #include "issue249.h"
 #include "issue254.h"
 #include "issue260.h"
@@ -22,6 +23,7 @@ extern "C"
         init_Test0003(extension);
         init_Test0004(extension);
 
+        init_Issue234(extension);
         init_Issue249(extension);
         init_Issue254(extension);
         init_Issue260(extension);
