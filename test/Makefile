@@ -61,7 +61,7 @@ test: all
 		fi; \
 		TEST_PHP_EXECUTABLE=$(PHP_EXECUTABLE) \
 		TEST_PHP_SRCDIR=$(SRCDIR) \
-		NO_INTERACTION=1 $(PHP_EXECUTABLE) -n -c $(BUILDDIR)/tmp-php.ini $(PHP_TEST_SETTINGS) $(SRCDIR)/run-tests.php -n -c $(BUILDDIR)/tmp-php.ini -d extension_dir=$(BUILDDIR) -d 'extension=$(TARGET)' $(TESTS); \
+		NO_INTERACTION=1 $(PHP_EXECUTABLE) -n -c $(BUILDDIR)/tmp-php.ini $(PHP_TEST_SETTINGS) $(SRCDIR)/run-tests.php -n -c $(BUILDDIR)/tmp-php.ini -d extension_dir=$(BUILDDIR) -d 'extension=$(TARGET)' $(TEST_FLAGS) $(TESTS); \
 		TEST_RESULT_EXIT_CODE=$$?; \
 		rm $(BUILDDIR)/tmp-php.ini; \
 		exit $$TEST_RESULT_EXIT_CODE; \
