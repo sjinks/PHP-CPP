@@ -33,7 +33,7 @@ phpcpptest.so: $(OBJS)
 	$(CXX) $^ $(PHP_LDFLAGS) $(LDFLAGS) -o "$@"
 
 %.o: %.cpp
-	$(CXX) $(PHP_CPPFLAGS) -fpic -g3 $(CXXFLAGS) -c "$<" -o "$@"
+	$(CXX) $(PHP_CPPFLAGS) -fpic -g3 $(CXXFLAGS) -c "$<" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$@" -o "$@"
 
 clean: clean-deps clean-coverage
 	-rm -f $(TARGET) $(OBJS)
@@ -44,9 +44,6 @@ clean-deps:
 ifeq (,$(findstring clean,$(MAKECMDGOALS)))
 -include $(SRC_DEPS)
 endif
-
-%.d : %.cpp
-	$(CXX) -MM -MP -MF"$@" -MT"$(@:%.d=%.o)" -MT"$@" $(PHP_CPPFLAGS) "$<"
 
 test: all
 	@if test ! -z "$(PHP_EXECUTABLE)" && test -x "$(PHP_EXECUTABLE)"; then \
