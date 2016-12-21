@@ -1,11 +1,12 @@
-SRCDIR                          = $(dir $(lastword $(MAKEFILE_LIST)))
+SRCDIR                          = $(dir $(lastword $(filter Makefile,$(MAKEFILE_LIST))))
 BUILDDIR                        = $(shell pwd)
 PHP_TEST_SETTINGS               = -d 'open_basedir=' -d 'output_buffering=0' -d 'memory_limit=-1'
 PHP_DEPRECATED_DIRECTIVES_REGEX = '^(magic_quotes_(gpc|runtime|sybase)?|(zend_)?extension(_debug)?(_ts)?)[\t\ ]*='
 PHP_EXECUTABLE                 ?= $(shell which php)
-EGREP                           = /bin/grep -E
+EGREP                           = grep -E
 PHP_CPPFLAGS                    = $(shell php-config --includes) -I$(SRCDIR)../include -I$(SRCDIR)../ -std=c++11
-PHP_LDFLAGS                     = -shared -Wl,-rpath,'$$ORIGIN/../' -L$(SRCDIR)../ -lphpcpp $(shell php-config --ldflags) 
+PHP_LDFLAGS                     = -shared -Wl,-rpath,'$$ORIGIN/../' -L$(SRCDIR)../ $(shell php-config --ldflags)
+LDLIBS                          = -lphpcpp 
 
 CXX_SRC  = \
 	main.cpp \
@@ -23,22 +24,27 @@ CXX_SRC  = \
 	issue293.cpp \
 	issue289.cpp
 
-OBJS     = $(patsubst %.cpp,%.o,$(CXX_SRC))
-SRC_DEPS = $(patsubst %.cpp,%.d,$(CXX_SRC))
-COVERAGE = $(patsubst %.cpp,%.gcda,$(CXX_SRC)) $(patsubst %.cpp,%.gcno,$(CXX_SRC))
+OBJS     = $(patsubst %.cpp,.build/%.o,$(CXX_SRC))
+SRC_DEPS = $(patsubst %.o,%.d,$(OBJS))
+COVERAGE = $(patsubst %.o,%.gcda,$(OBJS)) $(patsubst %.o,%.gcno,$(OBJS))
 
 TARGET   = phpcpptest.so
 
 all: $(TARGET)
 
 phpcpptest.so: $(OBJS)
-	$(CXX) $^ $(PHP_LDFLAGS) $(LDFLAGS) -o "$@"
+	$(CXX) $^ $(PHP_LDFLAGS) $(LDFLAGS) $(LDLIBS) -o "$@"
 
-%.o: %.cpp
+build_directory: .build
+.build:
+	mkdir -p "$@"
+
+.build/%.o: %.cpp | build_directory
 	$(CXX) $(PHP_CPPFLAGS) -fpic -g3 $(CXXFLAGS) -c "$<" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$@" -o "$@"
 
 clean: clean-deps clean-coverage
-	-rm -f $(TARGET) $(OBJS)
+	-rm -f $(TARGET) $(OBJS) $(COVERAGE)
+	-rm -r .build
 
 clean-deps:
 	-rm -f $(SRC_DEPS)
@@ -71,7 +77,7 @@ test: all
 	fi
 
 clean-coverage:
-	-rm -rf .coverage coverage $(COVERAGE)
+	-rm -rf .coverage coverage
 
 coverage: clean-coverage
 	$(MAKE) CXXFLAGS="-O0 -coverage" LDFLAGS="-coverage" test
