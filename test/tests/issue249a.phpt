@@ -2,9 +2,10 @@
 #249 (orig)
 --FILE--
 <?php
-$iterations = 0;
+$iterations   = 0;
 $memoryUsages = [];
-$maxMemory = 64000000;
+$maxMemory    = 64000000;
+$n            = getenv('USE_ZEND_ALLOC') == 0 ? 100 : 100000;
 do {
     $iterations++;
 
@@ -24,7 +25,7 @@ do {
             break;
         } // if ($memoryUsage >= $maxMemory)
     }
-} while($iterations < 65536*2);
+} while($iterations < $n);
 ?>
 --EXPECTF--
 iterations: %d; memory_usage: %s B

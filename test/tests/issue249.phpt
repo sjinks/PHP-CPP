@@ -6,7 +6,8 @@ Memory Leak (#249)
 <?php
 $u1 = -1;
 $u2 = -1;
-for ($i=0; $i<65536; ++$i) {
+$n  = getenv('USE_ZEND_ALLOC') == 0 ? 100 : 65536;
+for ($i=0; $i<$n; ++$i) {
     $testClass1 = new DoNothingClass();
     $testClass2 = new DoNothingClass();
     $testClass1->DoNothing($testClass2);
