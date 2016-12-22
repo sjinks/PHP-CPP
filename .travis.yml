@@ -12,8 +12,11 @@ before_install:
   - sudo apt-get -qq install valgrind
 
 script:
-  - make -j4 && ./.travis/run-tests.sh
+  - make -j4 libphpcpp.so CXXFLAGS="-O0 -g3 -coverage -Wall" LDFLAGS="-coverage" && ./.travis/run-tests.sh
 
 after_failure:
- - sudo apt-get -qq install gdb
- - ./.travis/after_failure.sh
+  - sudo apt-get -qq install gdb
+  - ./.travis/after_failure.sh
+
+after_success:
+  - ./.travis/after_success.sh
