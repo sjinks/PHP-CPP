@@ -27,7 +27,8 @@ CXX_SRC  = \
 
 OBJS     = $(patsubst %.cpp,.build/%.o,$(CXX_SRC))
 SRC_DEPS = $(patsubst %.o,%.d,$(OBJS))
-COVERAGE = $(patsubst %.o,%.gcda,$(OBJS)) $(patsubst %.o,%.gcno,$(OBJS))
+COV_GCDA = $(patsubst %.o,%.gcda,$(OBJS))
+COV_GCNO = $(patsubst %.o,%.gcno,$(OBJS))
 
 TARGET   = phpcpptest.so
 
@@ -44,7 +45,7 @@ build_directory: .build
 	$(CXX) $(PHP_CPPFLAGS) -fpic -g3 $(CXXFLAGS) -c "$<" -MMD -MP -MF"$(@:%.o=%.d)" -MT"$(@:%.o=%.d)" -MT"$@" -o "$@"
 
 clean: clean-deps clean-coverage
-	-rm -f $(TARGET) $(OBJS) $(COVERAGE)
+	-rm -f $(TARGET) $(OBJS) $(COV_GCDA) $(COV_GCNO)
 	-rm -r .build
 
 clean-deps:
@@ -69,7 +70,7 @@ test: all
 		fi; \
 		TEST_PHP_EXECUTABLE=$(PHP_EXECUTABLE) \
 		TEST_PHP_SRCDIR=$(SRCDIR) \
-		NO_INTERACTION=1 $(PHP_EXECUTABLE) -n -c $(BUILDDIR)/tmp-php.ini $(PHP_TEST_SETTINGS) $(SRCDIR)/run-tests.php -n -c $(BUILDDIR)/tmp-php.ini -d extension_dir=$(BUILDDIR) -d 'extension=$(TARGET)' $(TEST_FLAGS) $(TESTS); \
+		REPORT_EXIT_STATUS=1 NO_INTERACTION=1 $(PHP_EXECUTABLE) -n -c $(BUILDDIR)/tmp-php.ini $(PHP_TEST_SETTINGS) $(SRCDIR)/run-tests.php -n -c $(BUILDDIR)/tmp-php.ini -d extension_dir=$(BUILDDIR) -d 'extension=$(TARGET)' $(TEST_FLAGS) $(TESTS); \
 		TEST_RESULT_EXIT_CODE=$$?; \
 		rm $(BUILDDIR)/tmp-php.ini; \
 		exit $$TEST_RESULT_EXIT_CODE; \
@@ -78,10 +79,10 @@ test: all
 	fi
 
 clean-coverage:
-	-rm -rf .coverage coverage
+	-rm -rf .coverage coverage $(COV_GCDA)
 
 coverage: clean-coverage
-	$(MAKE) CXXFLAGS="-O0 -coverage" LDFLAGS="-coverage" test
+	-$(MAKE) CXXFLAGS="-O0 -coverage" LDFLAGS="-coverage" test
 	lcov -q -d $(BUILDDIR) -d $(SRCDIR)../shared/common -d $(SRCDIR)../shared/zend --capture --base-directory=$(SRCDIR)../ -o $(BUILDDIR)/.coverage
 	lcov -q -r $(BUILDDIR)/.coverage "/usr/include/*" "$(shell php-config --include-dir)/*" -o $(BUILDDIR)/.coverage
 	genhtml --quiet --legend --output-directory $(BUILDDIR)/coverage/ --title "PHP-CPP Code Coverage" $(BUILDDIR)/.coverage
