@@ -2,9 +2,6 @@
 
 class ConstStaticProp : public Php::Base {
 public:
-    ConstStaticProp() {}
-    virtual ~ConstStaticProp() {}
-    virtual void __construct() {}
 };
 
 void init_Test0003(Php::Extension& e)
@@ -17,6 +14,5 @@ void init_Test0003(Php::Extension& e)
     cspClass.property("exp", 2.71828182846, Php::Static);
     cspClass.property("truth", true, Php::Static);
     cspClass.property("str", "Hi!", Php::Static);
-    cspClass.method<&ConstStaticProp::__construct>("__construct", Php::Private);
     e.add(cspClass);
 }
