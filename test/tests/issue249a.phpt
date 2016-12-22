@@ -1,5 +1,7 @@
 --TEST--
 #249 (orig)
+--SKIPIF--
+<?php include('skipif.inc'); ?>
 --FILE--
 <?php
 $iterations   = 0;
