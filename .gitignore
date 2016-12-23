@@ -7,3 +7,6 @@
 *.d
 *.gcda
 *.gcno
+.cproject
+.project
+/.settings
