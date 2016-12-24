@@ -6,9 +6,11 @@ static void test254()
     Php::Value a;
     a["b"]["c"] = "a[\"b\"][\"c\"]";
     Php::out << a["b"]["c"] << std::endl;
-    a["d"] = Php::Array();
-    Php::array_push(a["d"], "0");
-    Php::array_push(a["d"], "1");
+    Php::Value d = Php::Array();
+    d.setReferenceFlag(true);
+    Php::array_push(d, "0");
+    Php::array_push(d, "1");
+    a["d"] = d;
     Php::out << a["d"][0] << std::endl;
     Php::out << a["d"][1] << std::endl;
 }
