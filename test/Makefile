@@ -9,7 +9,7 @@ PHP_LDFLAGS                     = -shared -Wl,-rpath,'$$ORIGIN/../' -L$(SRCDIR).
 LDLIBS                          = -lphpcpp 
 
 CXX_SRC  = \
-	main.cpp \
+	testmain.cpp \
 	test0001.cpp \
 	test0002.cpp \
 	test0003.cpp \
