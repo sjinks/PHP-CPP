@@ -366,6 +366,19 @@ public:
     template <typename T> bool operator> (const T &value) const { return (T)*this >  value; }
 
     /**
+     * Whether the Value is a reference
+     */
+    bool isReference() const;
+
+    /**
+     * Sets or unsets the reference flag.
+     * This can be useful when calling functions like @c array_push()
+     * which require their arguments to be references.
+     * @param set Whether the reference flag should be set or unset
+     */
+    void setReferenceFlag(bool set);
+
+    /**
      *  The type of object
      *  @return Type
      */
@@ -978,7 +991,9 @@ public:
     Value operator()(Args&&... args) const
     {
         // store arguments
-        Value vargs[] = { static_cast<Value>(args)... };
+        // we need a special copy constructor here
+        // in order not to discard the references
+        Value vargs[] = { Value(args, nullptr)... };
 
         // call the function
         return exec(sizeof...(Args), vargs);
@@ -1134,6 +1149,16 @@ private:
      * @internal
      */
     Value& operator=(struct _zval_struct* v);
+
+    /**
+     * Private copy constructor which uses @c ZVAL_COPY regardless of
+     * the type of @c other
+     * This is required when copying function parameters (ie, in
+     * @c operator()) because the original copy constructor break
+     * references, as it follows the PHP assignment semantics.
+     * @internal
+     */
+    Value(const Value &other, std::nullptr_t);
 
 protected:
     /**

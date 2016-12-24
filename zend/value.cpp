@@ -145,6 +145,7 @@ Value::Value(double value)
 Value::Value(struct _zval_struct *val, bool ref)
 {
     if (!ref) {
+        /// FIXME: ZVAL_COPY could be a more cheap alternative
         ZVAL_DUP(_val, val);
     }
     else {
@@ -196,6 +197,19 @@ Value::Value(const Value &that)
     }
 
     ZVAL_COPY(a, b);
+}
+
+/**
+ * Private copy constructor which uses @c ZVAL_COPY regardless of
+ * the type of @c other
+ * This is required when copying function parameters (ie, in
+ * @c operator()) because the original copy constructor break
+ * references, as it follows the PHP assignment semantics.
+ * @internal
+ */
+Value::Value(const Value &other, std::nullptr_t)
+{
+    ZVAL_COPY(_val, other._val);
 }
 
 /**
@@ -312,29 +326,12 @@ Value &Value::operator=(Value &&value) _NOEXCEPT
     // skip self assignment
     if (this == &value) return *this;
 
-    // if neither value is a reference we can simply swap the values
-    // the other value will then destruct and reduce the refcount
-    if (!Z_ISREF_P(value._val) && (!_val || !Z_ISREF_P(_val)))
-    {
-        // just swap the pointer
+    if (!Z_REFCOUNTED_P(_val)) {
         std::swap(_val, value._val);
-    }
-    else if (_val)
-    {
-        // copy the value over to our local zval
-        ZVAL_COPY_VALUE(_val, value._val);
-    }
-    else
-    {
-        // first swap the value out
-        std::swap(_val, value._val);
-
-        // and make sure it is no longer a reference
-        ZVAL_UNREF(_val);
+        return *this;
     }
 
-    // allow chaining
-    return *this;
+    return operator=(value._val);
 }
 
 Value& Value::operator=(struct _zval_struct* b)
@@ -933,6 +930,31 @@ bool Value::operator<(const Value &value) const
 }
 
 /**
+ * Whether the Value is a reference
+ */
+bool Value::isReference() const
+{
+    return Z_ISREF_P(_val);
+}
+
+/**
+ * Sets or unsets the reference flag.
+ * This can be useful when calling functions like @c array_push()
+ * which require their arguments to be references.
+ * @param set Whether the reference flag should be set or unset
+ */
+void Value::setReferenceFlag(bool set)
+{
+    if (set) {
+        ZVAL_MAKE_REF(_val);
+    }
+    else if (Z_ISREF_P(_val)) { // ZVAL_UNREF may abend if _val is not a reference
+        ZVAL_UNREF(_val);
+    }
+}
+
+
+/**
  *  The type of object
  *  @return Type
  */
@@ -964,7 +986,7 @@ bool Value::isNumeric() const
     // if we're a number we simply return true
     if (type() == Type::Numeric) return true;
 
-    // derefence ourselves and check the type of that
+    // dereference ourselves and check the type of that
     return ((Type) Z_TYPE_P(_val.dereference())) == Type::Numeric;
 }
 
@@ -993,7 +1015,7 @@ bool Value::isString() const
     // if we're a string we just return true right away
     if (type() == Type::String) return true;
 
-    // derefence ourselves and check the type of that
+    // dereference ourselves and check the type of that
     return ((Type) Z_TYPE_P(_val.dereference())) == Type::String;
 }
 
@@ -1006,7 +1028,7 @@ bool Value::isFloat() const
     // if we're a float ourselves we just return true right away
     if (type() == Type::Float) return true;
 
-    // derefence ourselves and check the type of that
+    // dereference ourselves and check the type of that
     return ((Type) Z_TYPE_P(_val.dereference())) == Type::Float;
 }
 
@@ -1019,7 +1041,7 @@ bool Value::isObject() const
     // if we're an object right away we just return true
     if (type() == Type::Object) return true;
 
-    // derefence ourselves and check the type of that
+    // dereference ourselves and check the type of that
     return ((Type) Z_TYPE_P(_val.dereference())) == Type::Object;
 }
 
@@ -1708,7 +1730,7 @@ HashMember<Value> Value::operator[](const Value &key)
 }
 
 /**
- *  Array access operato
+ *  Array access operator
  *  This can be used for accessing associative arrays
  *  @param  key
  *  @return HashMember
