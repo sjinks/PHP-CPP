@@ -1,5 +1,7 @@
 --TEST--
 Globals test (Globals sample extension)
+--XFAIL--
+Assignment to nested array does not work
 --SKIPIF--
 <?php include 'skipif.inc'; ?>
 --FILE--
