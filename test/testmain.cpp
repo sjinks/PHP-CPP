@@ -7,6 +7,7 @@
 #include "test0006.h"
 #include "test0007.h"
 #include "test0008.h"
+#include "test0009.h"
 #include "issue114.h"
 #include "issue229.h"
 #include "issue234.h"
@@ -33,6 +34,7 @@ extern "C"
         init_Test0006(extension);
         init_Test0007(extension);
         init_Test0008(extension);
+        init_Test0009(extension);
 
         init_Issue114(extension);
         init_Issue229(extension);
