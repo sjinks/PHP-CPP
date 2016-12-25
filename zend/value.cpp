@@ -949,7 +949,13 @@ void Value::setReferenceFlag(bool set)
         ZVAL_MAKE_REF(_val);
     }
     else if (Z_ISREF_P(_val)) { // ZVAL_UNREF may abend if _val is not a reference
-        ZVAL_UNREF(_val);
+        if (Z_REFCOUNT_P(_val) == 1) {
+            ZVAL_UNREF(_val);
+        }
+        else {
+            Z_DELREF_P(_val);
+            ZVAL_DUP(_val, Z_REFVAL_P(_val));
+        }
     }
 }
 
