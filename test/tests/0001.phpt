@@ -5,6 +5,8 @@ Call extension functions from PHP
 --FILE--
 <?php
 echo my_add(1, 2, 3, 4, 5), PHP_EOL;
+echo test1_my_no_parameters_function(), PHP_EOL;
 ?>
 --EXPECT--
 15
+42
