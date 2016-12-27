@@ -24,8 +24,6 @@ static Php::Value test8(void)
     // change value e
     Php::GLOBALS["e"] = Php::GLOBALS["e"][0]("hello");
 
-    Php::out << Php::call("var_export", Php::GLOBALS["c"]);
-
     // if a global variable holds a function, we can call it
     return Php::GLOBALS["d"](1, 2, 3);
 }

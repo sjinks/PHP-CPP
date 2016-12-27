@@ -5,7 +5,7 @@ static void test0005()
 {
     {
         Php::Value a = 0;
-        Php::Value b = Php::Value::makeReference(a);
+        Php::Value b = a.makeReference();
         Php::Value c(b);
         a = 1;
 
@@ -28,7 +28,7 @@ static void test0005()
 
     {
         Php::Value a = 0;
-        Php::Value b = Php::Value::makeReference(a);
+        Php::Value b = a.makeReference();
         Php::Value c(b);
         a = 's';
         b = a;
