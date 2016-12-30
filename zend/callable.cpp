@@ -28,11 +28,10 @@ void Callable::invoke(INTERNAL_FUNCTION_PARAMETERS)
     zend_arg_info* info = EX(func)->common.arg_info;
 
     // Sanity check
-    assert(info[argc+1].class_name == nullptr && info[argc+1].name == nullptr);
-    assert(info[argc+2].class_name != nullptr && info[argc+2].name == nullptr);
+    assert(info[argc].class_name != nullptr && info[argc].name == nullptr);
 
     // the callable we are retrieving
-    Callable *callable = reinterpret_cast<Callable*>(info[argc+2].class_name);
+    Callable *callable = reinterpret_cast<Callable*>(info[argc].class_name);
 
     // check if sufficient parameters were passed (for some reason this check
     // is not done by Zend, so we do it here ourselves)
@@ -87,7 +86,8 @@ void Callable::initialize(zend_function_entry *entry, const char *classname, int
     }
     else
     {
-        _argv[_argc + 2].class_name = reinterpret_cast<const char*>(this);
+        // install ourselves in the extra argument
+        _argv[_argc + 1].class_name = reinterpret_cast<const char*>(this);
 
         // we use our own invoke method, which does a lookup
         // in the map we just installed ourselves in
